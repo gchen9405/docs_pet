@@ -26,6 +26,11 @@ if (!window.__docsPetStarted) {
     machine.noteKeystroke();
     sync();
   });
+  // Fires after the same key's "keystroke" above, so the state (and thus the
+  // pose the jump interrupts and returns to) is already up to date.
+  signals.addEventListener('newline', () => {
+    view.jump();
+  });
   signals.addEventListener('activity', () => {
     machine.noteActivity();
   });

@@ -48,6 +48,16 @@ export const FLOURISH = {
 // the moment before every nap regardless.
 export const PRE_SLEEP_POSE = 'standing';
 
+// Played through once every time the user presses Enter: the named pose from
+// sprites.js plays while the view arcs the sprite through a small vertical
+// hop. Hop height is a fraction of the sprite's cell height so every cat
+// jumps in proportion; duration follows the pose (frames / fps) so the arc
+// and the frames stay in sync. Cats without the pose never jump.
+export const NEWLINE_JUMP = {
+  pose: 'jumping',
+  hopHeightFrac: 0.4,
+};
+
 export const MOTION = {
   // Horizontal speed while running, CSS pixels per second.
   runSpeedPxPerSec: 130,

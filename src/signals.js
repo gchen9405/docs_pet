@@ -1,12 +1,13 @@
-// Turns raw page events into three pet-relevant signals, and nothing more:
+// Turns raw page events into four pet-relevant signals, and nothing more:
 //   "keystroke"     detail: none        (a key went down in the editor)
-//   "activity"      detail: none        (non-typing activity, e.g. scrolling)
+//   "newline"       detail: none        (that key was Enter)
 //   "focuschange"   detail: boolean     (does this window have the user?)
+//   "activity"      detail: none        (non-typing activity, e.g. scrolling)
 //
 // Privacy note: the keydown handler necessarily receives full key events, but
-// it only checks whether the key is a bare modifier and then discards the
-// event. No key values are stored, logged, or transmitted; only "a keystroke
-// happened at this time" leaves this module.
+// it only checks whether the key is a bare modifier or Enter and then
+// discards the event. No key values are stored, logged, or transmitted; only
+// "a keystroke (or newline) happened at this time" leaves this module.
 
 import { TEXT_EVENT_TARGET_IFRAME } from './docs-selectors.js';
 import { TIMING } from './config.js';
@@ -125,7 +126,9 @@ export class Signals extends EventTarget {
 
   #onKeydown = (event) => {
     if (MODIFIER_KEYS.has(event.key)) return;
+    // keystroke first, so listeners see the newline against updated state.
     this.dispatchEvent(new Event('keystroke'));
+    if (event.key === 'Enter') this.dispatchEvent(new Event('newline'));
   };
 
   #onScroll = () => {

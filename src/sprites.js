@@ -4,10 +4,11 @@
 //
 // A pose's `frames` are [col, row] cell coordinates into the sheet; `fps` is
 // playback rate. Every entry must define the three state poses: running,
-// sitting, sleeping — plus the one-shot poses named by FLOURISH and
-// PRE_SLEEP_POSE in config.js (standing, stirring, prancing); a cat missing
-// one simply never plays that one-shot. The away state needs no pose of its own:
-// the view dims the cat and freezes whatever pose it was last in. `scale` is the integer
+// sitting, sleeping — plus the one-shot poses named by FLOURISH,
+// PRE_SLEEP_POSE, and NEWLINE_JUMP in config.js (standing, stirring,
+// prancing, jumping); a cat missing one simply never plays that one-shot.
+// The away state needs no pose of its own: the view dims the cat and freezes
+// whatever pose it was last in. `scale` is the integer
 // pixel-art zoom in the page, `previewScale` the smaller zoom used by the
 // popup picker. `baselineGap` is how many transparent sheet pixels sit
 // between the cat's feet and the bottom edge of its cell; the view shifts
@@ -50,6 +51,12 @@ const PIXEL = {
       frames: [[0, 5], [1, 5], [2, 5], [3, 5], [0, 5], [1, 5], [2, 5], [3, 5]],
       fps: 10,
     },
+
+    // Enter's jump (NEWLINE_JUMP in config.js): the pack has no jump loop, so
+    // the "scared" row's stiff-legged, tail-bolt-upright startle plays while
+    // the view hops the sprite — a surprised boing. Frame 1 repeats on the
+    // way down to round the arc out to four frames.
+    jumping: { frames: [[0, 4], [1, 4], [2, 4], [1, 4]], fps: 10 },
   },
 };
 
@@ -93,6 +100,12 @@ const POPSHOP_POSES = {
              [16, 13], [17, 13], [18, 13], [19, 13], [16, 14]],
     fps: 10,
   },
+
+  // Enter's jump (NEWLINE_JUMP in config.js): no jump loop in the pack
+  // either, so borrow a crouch from the sitting-down transition, spring
+  // through the gallop's two airborne tuck frames while the view hops the
+  // sprite, and land back in the crouch.
+  jumping: { frames: [[3, 13], [20, 14], [21, 14], [3, 13]], fps: 10 },
 };
 
 function popshopCat(name, file) {

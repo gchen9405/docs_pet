@@ -9,7 +9,29 @@
   transition: opacity 0.4s ease;
 }
 
+#docs-pet-root .docs-pet-hop {
+  will-change: transform;
+}
+
 #docs-pet-root .docs-pet-sprite {
   background-repeat: no-repeat;
   image-rendering: pixelated;
+}
+
+/* The newline jump's vertical arc; src/pet.js starts it on the .docs-pet-hop
+   wrapper with a duration matching the jumping pose, and sets the apex height
+   (--docs-pet-hop-px) from the sprite's size. Per-keyframe easing makes it
+   ballistic: decelerate going up, accelerate coming down. */
+@keyframes docs-pet-hop {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  50% {
+    transform: translateY(calc(-1 * var(--docs-pet-hop-px, 24px)));
+    animation-timing-function: ease-in;
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
