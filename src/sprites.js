@@ -38,10 +38,13 @@ const PIXEL = {
     // One-shot flourishes (not states — see FLOURISH / PRE_SLEEP_POSE in config.js). The pack
     // has no yawn/stretch loop, so these are the closest reads. Standing up
     // for a look around gets a theatrical beat from the "scared" row: mid
-    // look-around the tail shoots straight up, holds, and settles.
+    // look-around the tail shoots straight up, holds for four frames, and
+    // settles. The hold is what reads as a stretch before a nap, so it is
+    // repeated frames rather than a slower fps — the stand and the sit back
+    // down keep their snap.
     standing: {
       frames: [[0, 1], [1, 1], [2, 1], [3, 1],
-               [0, 4], [1, 4], [2, 4], [2, 4], [1, 4], [0, 4],
+               [0, 4], [1, 4], [2, 4], [2, 4], [2, 4], [2, 4], [1, 4], [0, 4],
                [4, 1], [5, 1], [6, 1], [7, 1]],
       fps: 4,
     },
@@ -93,10 +96,13 @@ const POPSHOP_POSES = {
 
   // One-shot flourishes (not states — see FLOURISH / PRE_SLEEP_POSE in config.js).
   // Stand up (the sitting-down transition played in reverse), hold upright
-  // for a beat, sit back down, then sweep the head around with the
-  // looking-around frames before settling.
+  // for four frames, sit back down, then sweep the head around with the
+  // looking-around frames before settling. The upright hold is what reads as
+  // a stretch before a nap, so it is repeated frames rather than a slower fps
+  // — the stand and the sit back down keep their snap.
   standing: {
-    frames: [[3, 13], [2, 13], [1, 13], [0, 13], [0, 13], [1, 13], [2, 13], [3, 13],
+    frames: [[3, 13], [2, 13], [1, 13], [0, 13], [0, 13], [0, 13], [0, 13],
+             [1, 13], [2, 13], [3, 13],
              [4, 13], [5, 13], [6, 13], [7, 13], [4, 14]],
     fps: 3.5,
   },

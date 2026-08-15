@@ -40,7 +40,7 @@ export const FLOURISH = {
 
   // A burst of zoomies: the gait switches and the cat bolts across the page
   // at zoomiesSpeedMult for a few loops.
-  running: { pose: 'prancing', minMs: 8_000, maxMs: 20_000 },
+  running: { pose: 'prancing', minMs: 6_150, maxMs: 15_400 },
 };
 
 // Played through once on the sitting -> sleeping transition: the cat stands
@@ -56,7 +56,7 @@ export const PRE_SLEEP_POSE = 'standing';
 // and the frames stay in sync. Cats without the pose never jump.
 export const NEWLINE_JUMP = {
   pose: 'jumping',
-  hopHeightFrac: 0.4,
+  hopHeightFrac: 0.52,
 };
 
 export const MOTION = {
