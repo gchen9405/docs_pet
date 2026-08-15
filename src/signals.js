@@ -23,7 +23,15 @@ export class Signals extends EventTarget {
 
   start() {
     this.#bindEditorIframe();
-    this.#pollTimer = setInterval(() => this.#bindEditorIframe(), TIMING.iframePollMs);
+    // The poll also re-samples focus. Not every focus transition fires an
+    // event this module can see: closing the extension popup by clicking
+    // into the editor moves focus popup -> hidden iframe, and the top window
+    // never fires "focus". The iframe listeners below catch that case
+    // immediately; this sample is the safety net for anything else.
+    this.#pollTimer = setInterval(() => {
+      this.#bindEditorIframe();
+      this.#sampleFocus();
+    }, TIMING.iframePollMs);
 
     // Fallback: typing that happens outside the hidden iframe (doc title,
     // comments) reaches the top document normally. Events from the iframe's
@@ -56,6 +64,8 @@ export class Signals extends EventTarget {
     document.removeEventListener('visibilitychange', this.#onFocusEvent);
     if (this.#boundIframeDoc) {
       this.#boundIframeDoc.removeEventListener('keydown', this.#onKeydown, true);
+      this.#boundIframeDoc.defaultView?.removeEventListener('focus', this.#onFocusEvent);
+      this.#boundIframeDoc.defaultView?.removeEventListener('blur', this.#onFocusEvent);
       this.#boundIframeDoc = null;
     }
   }
@@ -79,6 +89,13 @@ export class Signals extends EventTarget {
     this.#boundIframeDoc?.removeEventListener('keydown', this.#onKeydown, true);
     this.#boundIframeDoc = doc;
     doc.addEventListener('keydown', this.#onKeydown, true);
+
+    // Focus events land on the window that holds the focused element, which
+    // in Docs is this iframe's window, not the top one. Without these, focus
+    // moving directly between another document and the iframe (e.g. closing
+    // the extension popup by clicking into the editor) is invisible to us.
+    doc.defaultView?.addEventListener('focus', this.#onFocusEvent);
+    doc.defaultView?.addEventListener('blur', this.#onFocusEvent);
   }
 
   #onKeydown = (event) => {
@@ -92,12 +109,14 @@ export class Signals extends EventTarget {
 
   #onFocusEvent = () => {
     clearTimeout(this.#blurTimer);
-    this.#blurTimer = setTimeout(() => {
-      const focused = document.hasFocus() && !document.hidden;
-      if (focused !== this.#focused) {
-        this.#focused = focused;
-        this.dispatchEvent(new CustomEvent('focuschange', { detail: focused }));
-      }
-    }, TIMING.blurSettleMs);
+    this.#blurTimer = setTimeout(this.#sampleFocus, TIMING.blurSettleMs);
+  };
+
+  #sampleFocus = () => {
+    const focused = document.hasFocus() && !document.hidden;
+    if (focused !== this.#focused) {
+      this.#focused = focused;
+      this.dispatchEvent(new CustomEvent('focuschange', { detail: focused }));
+    }
   };
 }
