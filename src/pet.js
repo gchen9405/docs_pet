@@ -98,12 +98,15 @@ export class PetView {
   }
 
   // Flourishes are purely presentational one-shots (stir in sleep, zoomies
-  // mid-run) played on a random timer while a state persists. The tick
-  // reverts to the state's own pose after the last frame has shown.
+  // mid-run) played on a timer while a state persists — random within a
+  // window, or at a fixed delay where the flourish is meant to be earned
+  // rather than stumbled into (see FLOURISH in config.js). The tick reverts
+  // to the state's own pose after the last frame has shown.
   #scheduleFlourish() {
     const spec = FLOURISH[this.#state];
     if (!spec || !this.#def.poses[spec.pose]) return;
-    const delayMs = spec.minMs + Math.random() * (spec.maxMs - spec.minMs);
+    const delayMs =
+      spec.afterMs ?? spec.minMs + Math.random() * (spec.maxMs - spec.minMs);
     this.#flourishTimer = setTimeout(() => {
       if (REDUCED_MOTION.matches) return;
       this.#oneShot = this.#def.poses[spec.pose];

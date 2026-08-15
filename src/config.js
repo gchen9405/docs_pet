@@ -24,10 +24,13 @@ export const TIMING = {
   iframePollMs: 1000,
 };
 
-// Once-in-a-while one-shot animations, keyed by the state they play in. At a
-// random point in [minMs, maxMs] after the state begins (and again after each
-// play), the named pose from sprites.js plays through once, then the state's
-// normal loop resumes. States without an entry never flourish.
+// Once-in-a-while one-shot animations, keyed by the state they play in. An
+// entry fires either at a random point in [minMs, maxMs] (ambient, so it
+// doesn't feel metronomic) or, with afterMs, at a fixed delay. Either way the
+// countdown runs from when the state begins and restarts after each play, so
+// leaving the state resets it. The named pose from sprites.js plays through
+// once, then the state's normal loop resumes. States without an entry never
+// flourish.
 export const FLOURISH = {
   // Stand up, have a look around, sit back down. Sitting usually ends in
   // sleep before this can fire; it only lands during long sits, when
@@ -39,8 +42,17 @@ export const FLOURISH = {
   sleeping: { pose: 'stirring', minMs: 10_000, maxMs: 20_000 },
 
   // A burst of zoomies: the gait switches and the cat bolts across the page
-  // at zoomiesSpeedMult for a few loops.
-  running: { pose: 'prancing', minMs: 6_150, maxMs: 15_400 },
+  // at zoomiesSpeedMult for a few loops. Fixed rather than random so a long
+  // typing run always earns one: cross afterMs of unbroken running and the
+  // dash is guaranteed, then the countdown restarts and a run that long again
+  // earns another. Note that running only holds while keystrokes stay under
+  // typingPauseMs apart, so a pause to think resets this — keep it short
+  // enough that a burst of a few words can reach it.
+  //
+  // This is the gap between dashes, not the cadence: the countdown restarts
+  // when the pose finishes, so sustained typing dashes every afterMs plus the
+  // prancing pose's own run (~1.4s), i.e. about every 5s at 3_600.
+  running: { pose: 'prancing', afterMs: 3_600 },
 };
 
 // Played through once on the sitting -> sleeping transition: the cat stands
