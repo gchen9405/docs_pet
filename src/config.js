@@ -2,10 +2,10 @@
 
 export const TIMING = {
   // No keystrokes for this long -> the cat stops running and sits.
-  typingPauseMs: 1500,
+  typingPauseMs: 1100,
 
   // No activity at all (keys or scrolling) for this long -> the cat sleeps.
-  idleSleepMs: 7_000,
+  idleSleepMs: 5_000,
 
   // How often the state machine re-evaluates. Keystrokes also trigger an
   // immediate re-evaluation, so this only bounds how quickly the cat winds
