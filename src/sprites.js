@@ -3,10 +3,11 @@
 // without knowing anything about a particular sheet's layout.
 //
 // A pose's `frames` are [col, row] cell coordinates into the sheet; `fps` is
-// playback rate. Every entry must define all four state poses: running,
-// sitting, sleeping, away — plus the one-shot flourish poses named by
-// FLOURISH in config.js (standing, stirring, prancing); a cat missing a
-// flourish pose simply never plays that flourish. `scale` is the integer
+// playback rate. Every entry must define the three state poses: running,
+// sitting, sleeping — plus the one-shot poses named by FLOURISH and
+// PRE_SLEEP_POSE in config.js (standing, stirring, prancing); a cat missing
+// one simply never plays that one-shot. The away state needs no pose of its own:
+// the view dims the cat and freezes whatever pose it was last in. `scale` is the integer
 // pixel-art zoom in the page, `previewScale` the smaller zoom used by the
 // popup picker. `baselineGap` is how many transparent sheet pixels sit
 // between the cat's feet and the bottom edge of its cell; the view shifts
@@ -33,11 +34,7 @@ const PIXEL = {
     // Only the eyes-closed frames of the lying row (columns 4-6).
     sleeping: { frames: [[4, 2], [5, 2], [6, 2]], fps: 1 },
 
-    // Away reuses the seated pose, dimmed by the view; a single still frame
-    // so the cat visibly "switches off" when you leave.
-    away: { frames: [[0, 0]], fps: 1 },
-
-    // One-shot flourishes (not states — see FLOURISH in config.js). The pack
+    // One-shot flourishes (not states — see FLOURISH / PRE_SLEEP_POSE in config.js). The pack
     // has no yawn/stretch loop, so these are the closest reads: standing up
     // for a look around, and stirring mid-sleep (column 7 of the lying row
     // is the raised-head frame).
@@ -77,10 +74,7 @@ const POPSHOP_POSES = {
   // The last two "laying down" frames: flat on the ground, slow breathing.
   sleeping: { frames: [[10, 14], [11, 14]], fps: 0.8 },
 
-  // Single neutral seated frame, dimmed by the view.
-  away: { frames: [[4, 13]], fps: 1 },
-
-  // One-shot flourishes (not states — see FLOURISH in config.js).
+  // One-shot flourishes (not states — see FLOURISH / PRE_SLEEP_POSE in config.js).
   // Stand up (the sitting-down transition played in reverse), pause upright,
   // then sit back down.
   standing: {

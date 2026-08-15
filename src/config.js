@@ -29,7 +29,10 @@ export const TIMING = {
 // play), the named pose from sprites.js plays through once, then the state's
 // normal loop resumes. States without an entry never flourish.
 export const FLOURISH = {
-  // Stand up, have a look around, sit back down.
+  // Stand up, have a look around, sit back down. Sitting usually ends in
+  // sleep before this can fire; it only lands during long sits, when
+  // scrolling/reading keeps the cat awake. Short sits get the same pose
+  // via PRE_SLEEP_POSE below instead.
   sitting: { pose: 'standing', minMs: 5_000, maxMs: 15_000 },
 
   // Lift the head, then settle back to sleep.
@@ -38,6 +41,12 @@ export const FLOURISH = {
   // A burst of zoomies: tail shoots up mid-run for a couple of loops.
   running: { pose: 'prancing', minMs: 8_000, maxMs: 20_000 },
 };
+
+// Played through once on the sitting -> sleeping transition: the cat stands
+// up for one last look around, sits back down, and only then curls up. The
+// timed sitting flourish above only lands during long sits; this guarantees
+// the moment before every nap regardless.
+export const PRE_SLEEP_POSE = 'standing';
 
 export const MOTION = {
   // Horizontal speed while running, CSS pixels per second.

@@ -2,7 +2,7 @@
 // Everything here is presentation; state decisions come from state-machine.js
 // and which cat to draw comes from the sprite library (sprites.js).
 
-import { MOTION, APPEARANCE, FLOURISH } from './config.js';
+import { MOTION, APPEARANCE, FLOURISH, PRE_SLEEP_POSE } from './config.js';
 import { State } from './state-machine.js';
 
 const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -12,6 +12,7 @@ export class PetView {
   #root;
   #sprite;
   #state = null; // set by the first setState call; null so it never matches
+  #restState = State.SITTING; // last non-away state; away shows this pose dimmed
   #pose; // set by #applySprite during mount
   #frameIdx = 0;
   #frameClock = 0;
@@ -55,19 +56,43 @@ export class PetView {
 
   setState(state) {
     if (state === this.#state) return;
+    // Nodding off is announced: sit -> sleep first plays the pre-sleep pose
+    // through once as a one-shot, and the tick settles into the sleeping loop
+    // when it ends (scheduling the sleep flourish as with any one-shot).
+    const preSleep =
+      state === State.SLEEPING && this.#state === State.SITTING && !REDUCED_MOTION.matches
+        ? this.#def.poses[PRE_SLEEP_POSE]
+        : undefined;
     this.#state = state;
+    if (state !== State.AWAY) this.#restState = state;
+    // Going away mid-loop freezes on the frame currently showing; a flourish
+    // in flight belongs to another pose, so then restart the rest pose instead.
+    // A timed sitting flourish caught mid-play by the sleep transition keeps
+    // its frame and simply becomes the pre-sleep one-shot, not a restart.
+    const keepFrame =
+      (state === State.AWAY && !this.#oneShot) ||
+      (preSleep !== undefined && this.#oneShot === preSleep);
     this.#cancelFlourish();
-    this.#pose = this.#def.poses[state] ?? this.#def.poses.sitting;
-    this.#frameIdx = 0;
-    this.#frameClock = 0;
+    this.#oneShot = preSleep ?? null;
+    this.#pose = preSleep ?? this.#poseFor();
+    if (!keepFrame) {
+      this.#frameIdx = 0;
+      this.#frameClock = 0;
+    }
     this.#root.style.opacity = state === State.AWAY ? String(APPEARANCE.awayOpacity) : '';
     this.#applyFrame();
-    this.#scheduleFlourish();
+    if (!preSleep) this.#scheduleFlourish();
   }
 
-  // Flourishes are purely presentational one-shots (stand up for a look
-  // around, stir in sleep) played on a random timer while a state persists.
-  // The tick reverts to the state's own pose after the last frame has shown.
+  // The pose for the current state. Away has none of its own: the cat keeps
+  // the pose of whatever it was last doing, dimmed and frozen by the view.
+  #poseFor() {
+    return this.#def.poses[this.#restState] ?? this.#def.poses.sitting;
+  }
+
+  // Flourishes are purely presentational one-shots (stir in sleep, zoomies
+  // mid-run) played on a random timer while a state persists. The tick
+  // reverts to the state's own pose after the last frame has shown.
   #scheduleFlourish() {
     const spec = FLOURISH[this.#state];
     if (!spec || !this.#def.poses[spec.pose]) return;
@@ -110,7 +135,7 @@ export class PetView {
     this.#sprite.style.backgroundSize =
       `${sheet.cols * this.#cellPx}px ${sheet.rows * this.#cellPx}px`;
 
-    this.#pose = this.#def.poses[this.#state] ?? this.#def.poses.sitting;
+    this.#pose = this.#poseFor();
     this.#frameIdx = 0;
     this.#frameClock = 0;
     if (this.#x !== undefined) {
@@ -135,12 +160,13 @@ export class PetView {
     const fps = REDUCED_MOTION.matches ? Math.min(this.#pose.fps, 2) : this.#pose.fps;
     this.#frameClock += dt;
     const frameMs = 1000 / fps;
-    if (this.#frameClock >= frameMs) {
+    // Away holds still: the loop is frozen on whichever frame it dimmed at.
+    if (this.#state !== State.AWAY && this.#frameClock >= frameMs) {
       this.#frameClock %= frameMs;
       if (this.#oneShot && this.#frameIdx + 1 >= this.#pose.frames.length) {
         // Flourish finished: settle back into the state's own pose.
         this.#oneShot = null;
-        this.#pose = this.#def.poses[this.#state] ?? this.#def.poses.sitting;
+        this.#pose = this.#poseFor();
         this.#frameIdx = 0;
         this.#scheduleFlourish();
       } else {
