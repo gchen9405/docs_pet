@@ -1,0 +1,15 @@
+/* Static styles for the pet overlay. Dynamic values (position, frame,
+   z-index, sizes) are set inline by src/pet.js. */
+
+#docs-pet-root {
+  position: fixed;
+  left: 0;
+  pointer-events: none; /* the cat must never intercept a click */
+  will-change: transform;
+  transition: opacity 0.4s ease;
+}
+
+#docs-pet-root .docs-pet-sprite {
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
