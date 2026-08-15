@@ -5,7 +5,7 @@ export const TIMING = {
   typingPauseMs: 1500,
 
   // No activity at all (keys or scrolling) for this long -> the cat sleeps.
-  idleSleepMs: 90_000,
+  idleSleepMs: 7_000,
 
   // How often the state machine re-evaluates. Keystrokes also trigger an
   // immediate re-evaluation, so this only bounds how quickly the cat winds

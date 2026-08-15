@@ -27,7 +27,7 @@ cat :D
 | Type                                  | Runs back and forth |
 | Stop typing for a couple of seconds   | Sits, swishes its tail |
 | Scroll around, read                   | Stays sitting (scrolling keeps it awake) |
-| Do nothing for a minute and a half    | Lies down and sleeps |
+| Do nothing for a few seconds          | Lies down and sleeps |
 | Switch to another window or tab       | Waits, dimmed    |
 | Come back                             | Sits up, attentive |
 
