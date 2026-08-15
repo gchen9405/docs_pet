@@ -1,24 +1,29 @@
 // The overlay: owns the cat's DOM, sprite frames, and horizontal movement.
-// Everything here is presentation; state decisions come from state-machine.js.
+// Everything here is presentation; state decisions come from state-machine.js
+// and which cat to draw comes from the sprite library (sprites.js).
 
-import { SHEET, POSES } from './sprites.js';
 import { MOTION, APPEARANCE } from './config.js';
 import { State } from './state-machine.js';
 
 const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)');
 
 export class PetView {
+  #def;
   #root;
   #sprite;
   #state = State.SITTING;
-  #pose = POSES.sitting;
+  #pose;
   #frameIdx = 0;
   #frameClock = 0;
   #x;
-  #dir = -1; // -1 = facing left (the art's native direction)
+  #dir = -1; // -1 = facing left (every vendored sheet's native direction)
   #lastTs = 0;
   #raf = 0;
-  #cellPx = SHEET.cell * APPEARANCE.scale;
+  #cellPx = 0;
+
+  constructor(def) {
+    this.#def = def;
+  }
 
   mount() {
     this.#root = document.createElement('div');
@@ -28,17 +33,12 @@ export class PetView {
 
     this.#sprite = document.createElement('div');
     this.#sprite.className = 'docs-pet-sprite';
-    this.#sprite.style.width = `${this.#cellPx}px`;
-    this.#sprite.style.height = `${this.#cellPx}px`;
-    this.#sprite.style.backgroundImage = `url("${chrome.runtime.getURL(SHEET.path)}")`;
-    this.#sprite.style.backgroundSize =
-      `${SHEET.cols * this.#cellPx}px ${SHEET.rows * this.#cellPx}px`;
 
     this.#root.appendChild(this.#sprite);
     document.documentElement.appendChild(this.#root);
 
+    this.#applySprite();
     this.#x = Math.max(this.#minX(), Math.min(window.innerWidth * 0.7, this.#maxX()));
-    this.#applyFrame();
     this.#applyPosition();
 
     this.#lastTs = performance.now();
@@ -53,10 +53,38 @@ export class PetView {
   setState(state) {
     if (state === this.#state) return;
     this.#state = state;
-    this.#pose = POSES[state] ?? POSES.sitting;
+    this.#pose = this.#def.poses[state] ?? this.#def.poses.sitting;
     this.#frameIdx = 0;
     this.#frameClock = 0;
     this.#root.style.opacity = state === State.AWAY ? String(APPEARANCE.awayOpacity) : '';
+    this.#applyFrame();
+  }
+
+  // Swap to a different cat mid-run; keeps position, direction, and state.
+  setSprite(def) {
+    if (def === this.#def) return;
+    this.#def = def;
+    if (!this.#root) return;
+    this.#applySprite();
+    this.#applyPosition();
+  }
+
+  // (Re)derive everything that depends on the current sprite definition.
+  #applySprite() {
+    const { sheet } = this.#def;
+    this.#cellPx = sheet.cell * this.#def.scale;
+    this.#sprite.style.width = `${this.#cellPx}px`;
+    this.#sprite.style.height = `${this.#cellPx}px`;
+    this.#sprite.style.backgroundImage = `url("${chrome.runtime.getURL(sheet.path)}")`;
+    this.#sprite.style.backgroundSize =
+      `${sheet.cols * this.#cellPx}px ${sheet.rows * this.#cellPx}px`;
+
+    this.#pose = this.#def.poses[this.#state] ?? this.#def.poses.sitting;
+    this.#frameIdx = 0;
+    this.#frameClock = 0;
+    if (this.#x !== undefined) {
+      this.#x = Math.max(this.#minX(), Math.min(this.#x, this.#maxX()));
+    }
     this.#applyFrame();
   }
 
@@ -104,11 +132,16 @@ export class PetView {
   };
 
   #applyFrame() {
-    const col = this.#pose.frames[this.#frameIdx];
+    const [col, row] = this.#pose.frames[this.#frameIdx];
     this.#sprite.style.backgroundPosition =
-      `-${col * this.#cellPx}px -${this.#pose.row * this.#cellPx}px`;
-    // Art faces left; flip to face right when moving right.
-    this.#sprite.style.transform = this.#dir === 1 ? 'scaleX(-1)' : '';
+      `-${col * this.#cellPx}px -${row * this.#cellPx}px`;
+    // Drop the sprite by the sheet's built-in under-feet padding so every
+    // cat stands on the same line, and flip when facing away from the art's
+    // native direction.
+    const dropPx = this.#def.baselineGap * this.#def.scale;
+    const flip = (this.#dir === 1) === !!this.#def.facesLeft;
+    this.#sprite.style.transform =
+      `translateY(${dropPx}px)${flip ? ' scaleX(-1)' : ''}`;
   }
 
   #applyPosition() {

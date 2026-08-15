@@ -32,8 +32,7 @@ export const MOTION = {
 };
 
 export const APPEARANCE = {
-  // Integer scale factor for the 16px sprite (4 -> 64px cat).
-  scale: 4,
+  // Pixel-art zoom lives per-sprite in sprites.js, not here.
 
   // Distance from the bottom of the viewport.
   bottomPx: 6,
