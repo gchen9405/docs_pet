@@ -33,6 +33,7 @@ cat :D
 | Let it sit a while                    | Now and then stands up for a look around |
 | Let it sleep a while                  | Now and then stirs and lifts its head |
 | Keep typing a while                   | Now and then gets the zoomies, tail straight up |
+| Press Enter                           | Jumps! |
 
 ## Picking your cat
 

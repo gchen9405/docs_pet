@@ -2,7 +2,7 @@
 // Everything here is presentation; state decisions come from state-machine.js
 // and which cat to draw comes from the sprite library (sprites.js).
 
-import { MOTION, APPEARANCE, FLOURISH, PRE_SLEEP_POSE } from './config.js';
+import { MOTION, APPEARANCE, FLOURISH, PRE_SLEEP_POSE, NEWLINE_JUMP } from './config.js';
 import { State } from './state-machine.js';
 
 const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -10,6 +10,7 @@ const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)');
 export class PetView {
   #def;
   #root;
+  #hop; // wrapper between root and sprite; carries the jump's vertical arc
   #sprite;
   #state = null; // set by the first setState call; null so it never matches
   #restState = State.SITTING; // last non-away state; away shows this pose dimmed
@@ -37,7 +38,13 @@ export class PetView {
     this.#sprite = document.createElement('div');
     this.#sprite.className = 'docs-pet-sprite';
 
-    this.#root.appendChild(this.#sprite);
+    // root moves horizontally, hop moves vertically, sprite holds the frame
+    // transform (baseline drop + flip) — three layers so none clobbers
+    // another's transform.
+    this.#hop = document.createElement('div');
+    this.#hop.className = 'docs-pet-hop';
+    this.#hop.appendChild(this.#sprite);
+    this.#root.appendChild(this.#hop);
     document.documentElement.appendChild(this.#root);
 
     this.#applySprite();
@@ -110,6 +117,29 @@ export class PetView {
   #cancelFlourish() {
     clearTimeout(this.#flourishTimer);
     this.#oneShot = null;
+    // A dropped jump must not keep arcing under whatever pose replaced it.
+    this.#hop.style.animation = '';
+  }
+
+  // Triggered one-shot (the user pressed Enter): play the jumping pose while
+  // the hop wrapper arcs the sprite through the air, both sized to end
+  // together. Skipped while away (the frame loop is frozen), under reduced
+  // motion, mid-jump (mashing Enter doesn't stutter the arc), and for cats
+  // without the pose.
+  jump() {
+    const pose = this.#def.poses[NEWLINE_JUMP.pose];
+    if (!pose || this.#oneShot === pose) return;
+    if (this.#state === State.AWAY || REDUCED_MOTION.matches) return;
+    this.#cancelFlourish();
+    this.#oneShot = pose;
+    this.#pose = pose;
+    this.#frameIdx = 0;
+    this.#frameClock = 0;
+    this.#applyFrame();
+    const durationMs = (pose.frames.length / pose.fps) * 1000;
+    // Force a restart in case the previous jump's arc is still finishing.
+    void this.#hop.offsetWidth;
+    this.#hop.style.animation = `docs-pet-hop ${durationMs}ms both`;
   }
 
   // Swap to a different cat mid-run; keeps position, direction, and state.
@@ -134,6 +164,10 @@ export class PetView {
     this.#sprite.style.backgroundImage = `url("${chrome.runtime.getURL(sheet.path)}")`;
     this.#sprite.style.backgroundSize =
       `${sheet.cols * this.#cellPx}px ${sheet.rows * this.#cellPx}px`;
+    this.#hop.style.setProperty(
+      '--docs-pet-hop-px',
+      `${Math.round(this.#cellPx * NEWLINE_JUMP.hopHeightFrac)}px`,
+    );
 
     this.#pose = this.#poseFor();
     this.#frameIdx = 0;
