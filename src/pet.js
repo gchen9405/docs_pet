@@ -2,7 +2,7 @@
 // Everything here is presentation; state decisions come from state-machine.js.
 
 import { SHEET, POSES } from './sprites.js';
-import { MOTION, APPEARANCE } from './config.js';
+import { MOTION, APPEARANCE, FLOURISH } from './config.js';
 import { State } from './state-machine.js';
 
 const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -10,10 +10,12 @@ const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)');
 export class PetView {
   #root;
   #sprite;
-  #state = State.SITTING;
+  #state = null; // set by the first setState call; null so it never matches
   #pose = POSES.sitting;
   #frameIdx = 0;
   #frameClock = 0;
+  #oneShot = null; // pose of a flourish currently playing, else null
+  #flourishTimer = 0;
   #x;
   #dir = -1; // -1 = facing left (the art's native direction)
   #lastTs = 0;
@@ -47,17 +49,42 @@ export class PetView {
 
   destroy() {
     cancelAnimationFrame(this.#raf);
+    clearTimeout(this.#flourishTimer);
     this.#root?.remove();
   }
 
   setState(state) {
     if (state === this.#state) return;
     this.#state = state;
+    this.#cancelFlourish();
     this.#pose = POSES[state] ?? POSES.sitting;
     this.#frameIdx = 0;
     this.#frameClock = 0;
     this.#root.style.opacity = state === State.AWAY ? String(APPEARANCE.awayOpacity) : '';
     this.#applyFrame();
+    this.#scheduleFlourish();
+  }
+
+  // Flourishes are purely presentational one-shots (stand up for a look
+  // around, stir in sleep) played on a random timer while a state persists.
+  // The tick reverts to the state's own pose after the last frame has shown.
+  #scheduleFlourish() {
+    const spec = FLOURISH[this.#state];
+    if (!spec) return;
+    const delayMs = spec.minMs + Math.random() * (spec.maxMs - spec.minMs);
+    this.#flourishTimer = setTimeout(() => {
+      if (REDUCED_MOTION.matches) return;
+      this.#oneShot = POSES[spec.pose];
+      this.#pose = this.#oneShot;
+      this.#frameIdx = 0;
+      this.#frameClock = 0;
+      this.#applyFrame();
+    }, delayMs);
+  }
+
+  #cancelFlourish() {
+    clearTimeout(this.#flourishTimer);
+    this.#oneShot = null;
   }
 
   #minX() {
@@ -78,7 +105,15 @@ export class PetView {
     const frameMs = 1000 / fps;
     if (this.#frameClock >= frameMs) {
       this.#frameClock %= frameMs;
-      this.#frameIdx = (this.#frameIdx + 1) % this.#pose.frames.length;
+      if (this.#oneShot && this.#frameIdx + 1 >= this.#pose.frames.length) {
+        // Flourish finished: settle back into the state's own pose.
+        this.#oneShot = null;
+        this.#pose = POSES[this.#state] ?? POSES.sitting;
+        this.#frameIdx = 0;
+        this.#scheduleFlourish();
+      } else {
+        this.#frameIdx = (this.#frameIdx + 1) % this.#pose.frames.length;
+      }
       this.#applyFrame();
     }
 

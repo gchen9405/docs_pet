@@ -17,13 +17,17 @@ const MODIFIER_KEYS = new Set([
 
 export class Signals extends EventTarget {
   #boundIframeDoc = null;
+  #boundIframeWin = null;
   #pollTimer = 0;
   #blurTimer = 0;
   #focused = true;
 
   start() {
     this.#bindEditorIframe();
-    this.#pollTimer = setInterval(() => this.#bindEditorIframe(), TIMING.iframePollMs);
+    this.#pollTimer = setInterval(() => {
+      this.#bindEditorIframe();
+      this.#resampleFocus();
+    }, TIMING.iframePollMs);
 
     // Fallback: typing that happens outside the hidden iframe (doc title,
     // comments) reaches the top document normally. Events from the iframe's
@@ -58,6 +62,7 @@ export class Signals extends EventTarget {
       this.#boundIframeDoc.removeEventListener('keydown', this.#onKeydown, true);
       this.#boundIframeDoc = null;
     }
+    this.#unbindIframeWin();
   }
 
   get focused() {
@@ -72,13 +77,42 @@ export class Signals extends EventTarget {
     } catch {
       doc = null; // would only happen if Docs made it cross-origin
     }
-    if (!doc || doc === this.#boundIframeDoc) return;
+    if (!doc || (doc === this.#boundIframeDoc && this.#boundIframeWin)) return;
 
     // Docs replaced the iframe (or this is the first sighting). The old
     // document is gone with its listeners; just track the new one.
+    // (Re-adding an identical listener is a no-op, so the rebind is safe
+    // even when only the window binding was missing.)
     this.#boundIframeDoc?.removeEventListener('keydown', this.#onKeydown, true);
     this.#boundIframeDoc = doc;
     doc.addEventListener('keydown', this.#onKeydown, true);
+
+    // Docs keeps keyboard focus inside this iframe, and Chrome can deliver
+    // the blur/focus for an OS-level window switch to the focused frame
+    // only — the top window sees nothing. Without a listener here, coming
+    // back to the window can go unnoticed and the cat sticks in "away".
+    this.#unbindIframeWin();
+    const win = doc.defaultView;
+    if (win) {
+      win.addEventListener('blur', this.#onFocusEvent);
+      win.addEventListener('focus', this.#onFocusEvent);
+      this.#boundIframeWin = win;
+    }
+  }
+
+  #unbindIframeWin() {
+    this.#boundIframeWin?.removeEventListener('blur', this.#onFocusEvent);
+    this.#boundIframeWin?.removeEventListener('focus', this.#onFocusEvent);
+    this.#boundIframeWin = null;
+  }
+
+  // Backstop for focus events that were delivered nowhere we listen (or not
+  // delivered at all): if the sampled truth disagrees with what we believe,
+  // run the normal settled sample. Real transients (focus handing off between
+  // frames) still get the settle delay before anything is dispatched.
+  #resampleFocus() {
+    const focused = document.hasFocus() && !document.hidden;
+    if (focused !== this.#focused) this.#onFocusEvent();
   }
 
   #onKeydown = (event) => {

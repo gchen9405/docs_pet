@@ -19,8 +19,24 @@ export const TIMING = {
   blurSettleMs: 150,
 
   // How often to look for (and re-verify) Docs' hidden keystroke iframe.
-  // It is created late and may be replaced by Docs at any time.
+  // It is created late and may be replaced by Docs at any time. The same
+  // poll re-samples focus as a backstop against missed blur/focus events.
   iframePollMs: 1000,
+};
+
+// Once-in-a-while one-shot animations, keyed by the state they play in. At a
+// random point in [minMs, maxMs] after the state begins (and again after each
+// play), the named pose from sprites.js plays through once, then the state's
+// normal loop resumes. States without an entry never flourish.
+export const FLOURISH = {
+  // Stand up, have a look around, sit back down.
+  sitting: { pose: 'standing', minMs: 5_000, maxMs: 15_000 },
+
+  // Lift the head, then settle back to sleep.
+  sleeping: { pose: 'stirring', minMs: 10_000, maxMs: 20_000 },
+
+  // A burst of zoomies: tail shoots up mid-run for a couple of loops.
+  running: { pose: 'prancing', minMs: 8_000, maxMs: 20_000 },
 };
 
 export const MOTION = {
