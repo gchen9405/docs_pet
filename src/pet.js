@@ -176,7 +176,11 @@ export class PetView {
     }
 
     if (this.#state === State.RUNNING && !REDUCED_MOTION.matches) {
-      this.#x += this.#dir * MOTION.runSpeedPxPerSec * (dt / 1000);
+      // The zoomies flourish is the only one-shot that can play mid-run;
+      // while it does, the cat genuinely bolts.
+      const speed =
+        MOTION.runSpeedPxPerSec * (this.#oneShot ? MOTION.zoomiesSpeedMult : 1);
+      this.#x += this.#dir * speed * (dt / 1000);
       if (this.#x <= this.#minX()) {
         this.#x = this.#minX();
         this.#dir = 1;

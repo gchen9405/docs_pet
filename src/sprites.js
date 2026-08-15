@@ -35,20 +35,30 @@ const PIXEL = {
     sleeping: { frames: [[4, 2], [5, 2], [6, 2]], fps: 1 },
 
     // One-shot flourishes (not states — see FLOURISH / PRE_SLEEP_POSE in config.js). The pack
-    // has no yawn/stretch loop, so these are the closest reads: standing up
-    // for a look around, and stirring mid-sleep (column 7 of the lying row
-    // is the raised-head frame).
+    // has no yawn/stretch loop, so these are the closest reads. Standing up
+    // for a look around gets a theatrical beat from the "scared" row: mid
+    // look-around the tail shoots straight up, holds, and settles.
     standing: {
-      frames: [[0, 1], [1, 1], [2, 1], [3, 1], [4, 1], [5, 1], [6, 1], [7, 1]],
-      fps: 3,
+      frames: [[0, 1], [1, 1], [2, 1], [3, 1],
+               [0, 4], [1, 4], [2, 4], [2, 4], [1, 4], [0, 4],
+               [4, 1], [5, 1], [6, 1], [7, 1]],
+      fps: 4,
     },
-    stirring: { frames: [[7, 2], [0, 2], [1, 2], [7, 2]], fps: 2 },
 
-    // The "frighten" row is a tail-straight-up trot; two passes of it while
-    // the run keeps moving reads as a burst of zoomies.
+    // Stirring mid-sleep (column 7 of the lying row is the raised-head
+    // frame): head comes up, a slow look around the eyes-open lying frames,
+    // then back down.
+    stirring: {
+      frames: [[7, 2], [0, 2], [1, 2], [2, 2], [3, 2], [2, 2], [1, 2], [7, 2]],
+      fps: 2.5,
+    },
+
+    // The "frighten" row is a tail-straight-up trot; four fast passes while
+    // the run bolts at zoomiesSpeedMult reads as a burst of zoomies.
     prancing: {
-      frames: [[0, 5], [1, 5], [2, 5], [3, 5], [0, 5], [1, 5], [2, 5], [3, 5]],
-      fps: 10,
+      frames: [[0, 5], [1, 5], [2, 5], [3, 5], [0, 5], [1, 5], [2, 5], [3, 5],
+               [0, 5], [1, 5], [2, 5], [3, 5], [0, 5], [1, 5], [2, 5], [3, 5]],
+      fps: 12,
     },
   },
 };
@@ -75,23 +85,30 @@ const POPSHOP_POSES = {
   sleeping: { frames: [[10, 14], [11, 14]], fps: 0.8 },
 
   // One-shot flourishes (not states — see FLOURISH / PRE_SLEEP_POSE in config.js).
-  // Stand up (the sitting-down transition played in reverse), pause upright,
-  // then sit back down.
+  // Stand up (the sitting-down transition played in reverse), hold upright
+  // for a beat, sit back down, then sweep the head around with the
+  // looking-around frames before settling.
   standing: {
-    frames: [[3, 13], [2, 13], [1, 13], [0, 13], [1, 13], [2, 13], [3, 13], [0, 14]],
-    fps: 3,
+    frames: [[3, 13], [2, 13], [1, 13], [0, 13], [0, 13], [1, 13], [2, 13], [3, 13],
+             [4, 13], [5, 13], [6, 13], [7, 13], [4, 14]],
+    fps: 3.5,
   },
 
-  // Lift the head off the ground (the laying-down block's head-up frames),
-  // then settle back flat.
-  stirring: { frames: [[9, 14], [8, 14], [9, 14], [10, 14]], fps: 2 },
+  // Rise off the ground back up the laying-down block — head up, then propped
+  // on the front paws ([11, 13], held for a beat) — before flopping back flat.
+  stirring: {
+    frames: [[10, 14], [9, 14], [8, 14], [11, 13], [11, 13], [8, 14], [9, 14], [10, 14]],
+    fps: 2,
+  },
 
-  // Zoomies: two passes of the plain "running" gait, a visible burst against
-  // the gallop the running state normally plays.
+  // Zoomies: four fast passes of the plain "running" gait while the run bolts
+  // at zoomiesSpeedMult — long leaping strides against the usual gallop.
   prancing: {
     frames: [[16, 13], [17, 13], [18, 13], [19, 13], [16, 14],
+             [16, 13], [17, 13], [18, 13], [19, 13], [16, 14],
+             [16, 13], [17, 13], [18, 13], [19, 13], [16, 14],
              [16, 13], [17, 13], [18, 13], [19, 13], [16, 14]],
-    fps: 10,
+    fps: 14,
   },
 };
 

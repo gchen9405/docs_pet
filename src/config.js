@@ -38,7 +38,8 @@ export const FLOURISH = {
   // Lift the head, then settle back to sleep.
   sleeping: { pose: 'stirring', minMs: 10_000, maxMs: 20_000 },
 
-  // A burst of zoomies: tail shoots up mid-run for a couple of loops.
+  // A burst of zoomies: the gait switches and the cat bolts across the page
+  // at zoomiesSpeedMult for a few loops.
   running: { pose: 'prancing', minMs: 8_000, maxMs: 20_000 },
 };
 
@@ -51,6 +52,10 @@ export const PRE_SLEEP_POSE = 'standing';
 export const MOTION = {
   // Horizontal speed while running, CSS pixels per second.
   runSpeedPxPerSec: 130,
+
+  // Multiplier on runSpeedPxPerSec while the zoomies flourish plays, so the
+  // burst is a real dash and not just a change of gait.
+  zoomiesSpeedMult: 2.2,
 
   // Keep this much space between the cat and the viewport edges.
   edgeMarginPx: 24,
