@@ -51,8 +51,8 @@ export const FLOURISH = {
   //
   // This is the gap between dashes, not the cadence: the countdown restarts
   // when the pose finishes, so sustained typing dashes every afterMs plus the
-  // prancing pose's own run (~1.4s), i.e. about every 5s at 3_600.
-  running: { pose: 'prancing', afterMs: 3_600 },
+  // prancing pose's own run (~1.4s), i.e. about every 6s at 4_600.
+  running: { pose: 'prancing', afterMs: 4_600 },
 };
 
 // Played through once on the sitting -> sleeping transition: the cat stands
