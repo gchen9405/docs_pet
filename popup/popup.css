@@ -1,0 +1,87 @@
+body {
+  margin: 0;
+  width: 316px;
+  font-family: system-ui, sans-serif;
+  background: #faf9f7;
+  color: #3c3a36;
+}
+
+header {
+  padding: 12px 14px 6px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+header p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #8a867e;
+}
+
+#grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 8px 14px 4px;
+}
+
+.card {
+  appearance: none;
+  border: 2px solid #e6e2da;
+  border-radius: 10px;
+  background: #fff;
+  padding: 4px 2px 6px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.card:hover {
+  border-color: #c9c3b6;
+}
+
+.card.selected {
+  border-color: #e8926d;
+  background: #fdf3ee;
+}
+
+.stage {
+  height: 56px;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.cat {
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  flex: none;
+}
+
+.name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b675f;
+}
+
+.card.selected .name {
+  color: #c05f35;
+}
+
+footer {
+  padding: 6px 14px 10px;
+  font-size: 10px;
+  color: #a5a099;
+}
+
+footer a {
+  color: inherit;
+}

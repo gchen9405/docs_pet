@@ -34,7 +34,20 @@ cat :D
 | Let it sleep a while                  | Now and then stirs and lifts its head |
 | Keep typing a while                   | Now and then gets the zoomies, tail straight up |
 
+## Picking your cat
+
+Click the Docs Pet icon in Chrome's toolbar to open the cat picker. There are
+eight cats: Pixel (the original), Tabby, Calico, Siamese, Smokey, Snowball,
+Latte, and Ghost. Your choice is saved (and synced, if you're signed into
+Chrome) and applies to every open Doc immediately.
 
 ## Credits
 
-Open source cat sprite
+Open source cat sprites:
+
+- **Pixel** — ["Free Pixel Animation - Cat [6 loops]"](https://zeenaz.itch.io/free-pixel-animation-cat-6-loops)
+  by Zeenaz, CC0. See `assets/cat/LICENSE.md`.
+- **Everyone else** — ["Cats || Pixel Asset Pack"](https://pop-shop-packs.itch.io/cats-pixel-asset-pack)
+  by Pop Shop Packs, free for any project per its license. Only 7 of its 50
+  color variants are vendored here — see `assets/popshop-cats/LICENSE.md`,
+  and grab the full pack from their page.

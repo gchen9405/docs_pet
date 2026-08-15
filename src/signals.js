@@ -24,6 +24,11 @@ export class Signals extends EventTarget {
 
   start() {
     this.#bindEditorIframe();
+    // The poll also re-samples focus. Not every focus transition fires an
+    // event this module can see: closing the extension popup by clicking
+    // into the editor moves focus popup -> hidden iframe, and the top window
+    // never fires "focus". The iframe listeners below catch that case
+    // immediately; this resample is the safety net for anything else.
     this.#pollTimer = setInterval(() => {
       this.#bindEditorIframe();
       this.#resampleFocus();
@@ -87,9 +92,12 @@ export class Signals extends EventTarget {
     this.#boundIframeDoc = doc;
     doc.addEventListener('keydown', this.#onKeydown, true);
 
-    // Docs keeps keyboard focus inside this iframe, and Chrome can deliver
+    // Focus events land on the window that holds the focused element, which
+    // in Docs is this iframe's window, not the top one: Chrome can deliver
     // the blur/focus for an OS-level window switch to the focused frame
-    // only — the top window sees nothing. Without a listener here, coming
+    // only, and focus moving directly between another document and the
+    // iframe (e.g. closing the extension popup by clicking into the editor)
+    // is equally invisible to the top window. Without listeners here, coming
     // back to the window can go unnoticed and the cat sticks in "away".
     this.#unbindIframeWin();
     const win = doc.defaultView;
@@ -126,12 +134,14 @@ export class Signals extends EventTarget {
 
   #onFocusEvent = () => {
     clearTimeout(this.#blurTimer);
-    this.#blurTimer = setTimeout(() => {
-      const focused = document.hasFocus() && !document.hidden;
-      if (focused !== this.#focused) {
-        this.#focused = focused;
-        this.dispatchEvent(new CustomEvent('focuschange', { detail: focused }));
-      }
-    }, TIMING.blurSettleMs);
+    this.#blurTimer = setTimeout(this.#sampleFocus, TIMING.blurSettleMs);
+  };
+
+  #sampleFocus = () => {
+    const focused = document.hasFocus() && !document.hidden;
+    if (focused !== this.#focused) {
+      this.#focused = focused;
+      this.dispatchEvent(new CustomEvent('focuschange', { detail: focused }));
+    }
   };
 }
